@@ -1,5 +1,3 @@
-#Changes: turned YELLOWS values into a list instead of a single int
-#         implemented weighting of doubled letters
 
 import sys
 
@@ -13,15 +11,6 @@ KNOWN = set()
 KNOWN_NOT = set()
 
 FIRST_WORD = 'orate'
-
-with open('all_words.txt') as fi:
-    for line in fi:
-        WORD_LIST += [(x,0) for x in map(lambda x: x[1:-2], line.split())]
-
-#Access file of all wordle words
-with open('wordle-answers-alphabetical.txt') as fi:
-    for line in fi:
-        GUESSES.append((line.replace('\n',''),0))
 
 #Create letter frequency map
 for word,_ in GUESSES:
@@ -41,7 +30,7 @@ def calcFrequencyMap():
             else:
                 LETTER_FREQS[c] += 1
 
-#Score is sum of frequencies of unique letters that we haven't already examined and 1.5 times frequency of letters we examined but aren't sure where they land yet
+#Score is sum of frequencies of unique letters that we haven't already examined and frequency of letters we examined but aren't sure where they land yet
 def score(word: str):
     count = 0
     pointsGained = set()
@@ -105,10 +94,6 @@ def reorderWords():
     return nw,ng
 
 
-calcFrequencyMap()
-newList = [(x[0],score(x[0])) for x in sorted(WORD_LIST, key=lambda x: score(x[0]))]
-print(newList[:10])
-
 #Initial stage, tells user what guess to do to obtain the most possible information
 #and then updates our global variables
 def ask():
@@ -156,6 +141,16 @@ def guess():
 
 def main():
     global WORD_LIST, GREENS, GUESSES, KNOWN, KNOWN_NOT, YELLOWS
+
+    with open('all_words.txt') as fi:
+        for line in fi:
+            WORD_LIST += [(x,0) for x in map(lambda x: x[1:-2], line.split())]
+
+    #Access file of all wordle words
+    with open('wordle-answers-alphabetical.txt') as fi:
+        for line in fi:
+            GUESSES.append((line.replace('\n',''),0))
+
     #This section is essentially the same as ask(), just a few different words for the user
     yellowsTemp = [item.split(',') for item in input(f"First, guess '{FIRST_WORD.upper()}'. Which letters (if any) are now yellow? Please enter in format 'c1,n1 c2,n2' where c1 is the first yellow character and n1 is its location in the word from 1 to 5: ").split()]
     for y in yellowsTemp:
