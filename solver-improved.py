@@ -1,3 +1,6 @@
+#Changes: turned YELLOWS values into a list instead of a single int
+#         implemented weighting of doubled letters
+
 import sys
 
 WORD_LIST = []
@@ -38,15 +41,19 @@ def calcFrequencyMap():
             else:
                 LETTER_FREQS[c] += 1
 
-#Score is sum of frequencies of unique letters that we haven't already examined and half frequency of letters we examined but aren't sure where they land yet
+#Score is sum of frequencies of unique letters that we haven't already examined and 1.5 times frequency of letters we examined but aren't sure where they land yet
 def score(word: str):
     count = 0
-    for c in set(word):
+    pointsGained = set()
+    for i,c in enumerate(word):
         if c in LETTER_FREQS:
-            if c not in KNOWN | KNOWN_NOT | set(GREENS.values()):
-                count += LETTER_FREQS[c]
-            elif c in KNOWN and word.index(c) != YELLOWS[c]:
-                count += int(LETTER_FREQS[c]/1.5)
+            if c not in pointsGained:
+                if c not in KNOWN | KNOWN_NOT | set(GREENS.values()):
+                    count += LETTER_FREQS[c]
+                    pointsGained.add(c)
+                elif c in KNOWN and i not in YELLOWS[c]:
+                    count += LETTER_FREQS[c]
+                    pointsGained.add(c)
     return count
 
 
@@ -54,7 +61,6 @@ def score(word: str):
 def scoreGuess(word):
     count = 0
     for c in word:
-        print(word, LETTER_FREQS)
         if c in LETTER_FREQS:
             if c not in KNOWN:
                 count += LETTER_FREQS[c]
@@ -70,8 +76,9 @@ def hasGreens(word: str):
 
 def correctYellows(word: str):
     for letter in YELLOWS:
-        if word[YELLOWS[letter]] == letter:
-            return False
+        for index in YELLOWS[letter]:
+            if word[index] == letter:
+                return False
     return True
 
 #Make sure this word contains all letters we know are included in the correct word 
@@ -108,7 +115,11 @@ def ask():
     global WORD_LIST, GREENS, GUESSES, KNOWN, KNOWN_NOT, YELLOWS
     #locations and characters of yellows
     yellowsTemp = [item.split(',') for item in input(f"Now, guess '{WORD_LIST[0][0].upper()}'. Which letters (if any) are now yellow? Please enter in format 'c1,n1 c2,n2' where c1 is the first yellow character and n1 is its location in the word from 1 to 5: ").split()]
-    YELLOWS.update({x[0]: int(x[1])-1 for x in yellowsTemp})
+    for y in yellowsTemp:
+        if y[0] in YELLOWS:
+            YELLOWS[y[0]].append(int(y[1])-1)
+        else:
+            YELLOWS[y[0]] = [int(y[1])-1]
     KNOWN |= set([x[0] for x in yellowsTemp]) 
     if input("Was this guess correct? (answer 'y' or 'n'): ") == 'y':
         return True
@@ -126,7 +137,11 @@ def ask():
 def guess():
     global WORD_LIST, GREENS, GUESSES, KNOWN, KNOWN_NOT, YELLOWS
     yellowsTemp = [item.split(',') for item in input(f"Now, guess '{GUESSES[0][0].upper()}'. Which letters (if any) are now yellow? Please enter in format 'c1,n1 c2,n2' where c1 is the first yellow character and n1 is its location in the word from 1 to 5: ").split()]
-    YELLOWS.update({x[0]: int(x[1])-1 for x in yellowsTemp})
+    for y in yellowsTemp:
+        if y[0] in YELLOWS:
+            YELLOWS[y[0]].append(int(y[1])-1)
+        else:
+            YELLOWS[y[0]] = [int(y[1])-1]
     KNOWN |= set([x[0] for x in yellowsTemp])
     if input("Was this guess correct? (answer 'y' or 'n'): ") == 'y':
         return True
@@ -143,7 +158,11 @@ def main():
     global WORD_LIST, GREENS, GUESSES, KNOWN, KNOWN_NOT, YELLOWS
     #This section is essentially the same as ask(), just a few different words for the user
     yellowsTemp = [item.split(',') for item in input(f"First, guess '{FIRST_WORD.upper()}'. Which letters (if any) are now yellow? Please enter in format 'c1,n1 c2,n2' where c1 is the first yellow character and n1 is its location in the word from 1 to 5: ").split()]
-    YELLOWS.update({x[0]: int(x[1])-1 for x in yellowsTemp})
+    for y in yellowsTemp:
+        if y[0] in YELLOWS:
+            YELLOWS[y[0]].append(int(y[1])-1)
+        else:
+            YELLOWS[y[0]] = [int(y[1])-1]
     KNOWN = set([x[0] for x in yellowsTemp])
     if input("Was this guess correct? (answer 'y' or 'n'): ") == 'y':
         print('Nice! Glad to help :). It took only 1 guess to get the answer.')
