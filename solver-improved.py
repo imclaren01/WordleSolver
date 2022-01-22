@@ -1,6 +1,4 @@
-from ctypes.wintypes import WORD
 import sys
-from tkinter import FIRST
 
 WORD_LIST = []
 GUESSES = []
